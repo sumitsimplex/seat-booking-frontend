@@ -6,12 +6,14 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
-    environment:
-      - REACT_APP_API_BASE_URL=http://backend:5000
+#    environment:
+#      - REACT_APP_API_BASE_URL=http://backend:5000
+    env_file:
+      - .env
 
   backend:
-    image: seat_booking_api-flask_app:latest
-    container_name: seat_booking_api
-    ports:
-      - "5000:5000"
+    image: seat-booking-backend-flask_app:latest
+    container_name: backend  # Keep it consistent with React API calls
+#    ports:
+#      - "5000:5000"
     restart: unless-stopped

@@ -2,6 +2,11 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const SeatBookingApp = () => {
+    const API_BASE_URL = "/api";
+//  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+//  console.log("env API Base URL:", process.env.REACT_APP_API_BASE_URL);
+//  console.log("set API Base URL:", API_BASE_URL);
+
   const [desks, setDesks] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedDesk, setSelectedDesk] = useState(null);
@@ -16,30 +21,36 @@ const SeatBookingApp = () => {
 
   const fetchDesks = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/desks");
+        const response = await axios.get(`${API_BASE_URL}/desks`);
+//      const response = await axios.get(`${API_BASE_URL}api/desks`);
       setDesks(response.data);
     } catch (error) {
       console.error("Error fetching desks:", error);
     }
   };
 
-  const getWeekDates = () => {
-    const today = new Date();
-    const monday = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+    const getWeekDates = () => {
+      const today = new Date();
+      let dates = [];
+      let daysAdded = 0;
 
-    let dates = [];
-    for (let i = 0; i < 10; i++) {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + i);
-      if (date.getDay() !== 0 && date.getDay() !== 6) {
-        dates.push({
-          date: date.toISOString().split("T")[0],
-          weekday: date.toLocaleString("en-US", { weekday: "long" }),
-        });
+      while (dates.length < 10) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + daysAdded);
+
+        if (date.getDay() !== 0 && date.getDay() !== 6) {
+          dates.push({
+            date: date.toISOString().split("T")[0],
+            weekday: date.toLocaleString("en-US", { weekday: "long" }),
+          });
+        }
+
+        daysAdded++;
       }
-    }
-    return dates;
-  };
+
+      return dates;
+    };
+
 
   const handleDeskClick = (desk, date) => {
     const booking = desk.bookings[date] || { isAvailable: true, employee_name: "" };
@@ -62,7 +73,7 @@ const SeatBookingApp = () => {
     }
 
     try {
-      await axios.post("http://localhost:5000/desks/book", {
+      await axios.post(`${API_BASE_URL}/desks/book`, {
         id: selectedDesk.id,
         employee_name: employeeName,
         date: selectedDate,
@@ -78,7 +89,7 @@ const SeatBookingApp = () => {
 
   const confirmCancelBooking = async () => {
     try {
-      await axios.delete(`http://localhost:5000/desks/${selectedDesk.id}`, {
+      await axios.delete(`${API_BASE_URL}/desks/${selectedDesk.id}`, {
         data: { date: selectedDate },
       });
       fetchDesks();
@@ -159,7 +170,7 @@ const SeatBookingApp = () => {
                   key={desk.id}
                   onClick={() => handleDeskClick(desk, date)}
                   style={{
-                    backgroundColor: booking.isAvailable ? "green" : "red",
+                    backgroundColor: booking.isAvailable ? "green" : "grey",
                     color: "white",
                     padding: "15px 30px",
                     border: "none",
@@ -182,7 +193,7 @@ const SeatBookingApp = () => {
                   }}
                 >
                   <i className="fas fa-desktop" style={{ marginRight: "10px" }}></i>
-                  {booking.isAvailable ? desk.name : booking.employee_name}
+                  {booking.isAvailable ? desk.name : desk.name+' ('+booking.employee_name+')'}
                 </button>
               );
             })}
